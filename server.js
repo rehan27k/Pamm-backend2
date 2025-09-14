@@ -1,21 +1,31 @@
+// server.js
+const express = require("express");
+const mongoose = require("mongoose");
 
-// if using mongoose
-import mongoose from 'mongoose';
+const app = express();   // <--- THIS LINE creates "app"
 
-const MONGODB_URI = process.env.MONGODB_URI;
+// Middleware
+app.use(express.json());
 
-app.get('/api/test-db', async (req, res) => {
-  if (!MONGODB_URI) return res.status(500).json({ ok: false, error: 'No MONGODB_URI' });
+// Root route
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
-  try {
-    // connect, test, then disconnect (or keep connection open in real app)
-    await mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-    const admin = mongoose.connection.db.admin();
-    const info = await admin.serverStatus();
-    // optionally close if you don't maintain persistent connection
-    // await mongoose.disconnect();
-    res.json({ ok: true, msg: 'DB connected', version: info.version });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
+// MongoDB connection
+const uri = process.env.MONGODB_URI;
+mongoose
+  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// Example test route
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from your backend!" });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
